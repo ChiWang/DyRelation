@@ -145,7 +145,7 @@ bool DmpAlgCalibrationRel::Finalize(){
           for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
             o_RelData_Bgo<<"\t\t"<<lxg_f->GetParameter(ip);
           }
-          o_RelData_Bgo<<std::endl;
+          o_RelData_Bgo<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
           fBgoRelHist[l][b][s][nd]->Write();
           delete fBgoRelHist[l][b][s][nd];
         }
@@ -172,7 +172,7 @@ bool DmpAlgCalibrationRel::Finalize(){
         for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
           o_RelData_Psd<<"\t\t"<<lxg_f->GetParameter(ip);
         }
-        o_RelData_Psd<<std::endl;
+        o_RelData_Psd<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
         fPsdRelHist[l][b][s]->Write();
         delete fPsdRelHist[l][b][s];
       }
