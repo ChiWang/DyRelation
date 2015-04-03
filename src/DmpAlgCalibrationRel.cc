@@ -140,7 +140,7 @@ bool DmpAlgCalibrationRel::Finalize(){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s = 0;s<DmpParameterBgo::kSideNo;++s){
         for(short nd=0;nd<2;++nd){
-          o_RelData_Bgo<<Form("%d\t\t%d\t\t%d\t\tDy%d-Dy%d",l,b,s,nd*3+2,(nd+1)*3+2);
+          o_RelData_Bgo<<DmpBgoBase::ConstructGlobalDynodeID(l,b,s,nd*3+2)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t%d",l,b,s,nd*3+2);
           fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
           for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
             o_RelData_Bgo<<"\t\t"<<lxg_f->GetParameter(ip);
@@ -167,7 +167,7 @@ bool DmpAlgCalibrationRel::Finalize(){
   for(short l=0;l<layerNo;++l){
     for(short b=0;b<DmpParameterPsd::kStripNo;++b){
       for(short s = 0;s<DmpParameterPsd::kSideNo;++s){
-        o_RelData_Psd<<Form("%d\t\t%d\t\t%d\t\tDy5-Dy8",l,b,s);
+        o_RelData_Psd<<DmpPsdBase::ConstructGlobalDynodeID(l,b,s,5)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t5",l,b,s);
         fPsdRelHist[l][b][s]->Fit(lxg_f,"RQB");
         for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
           o_RelData_Psd<<"\t\t"<<lxg_f->GetParameter(ip);
