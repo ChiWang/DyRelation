@@ -128,7 +128,6 @@ bool DmpAlgCalibrationRel::Finalize(){
   histFile->mkdir("Bgo");
   histFile->cd("Bgo");
   std::string name = "Bgo_"+gRootIOSvc->GetInputStem()+".rel";
-  name = "Bgo_"+gRootIOSvc->GetInputStem()+"Dy8.rel";
   o_RelData_Bgo.open(name.c_str(),std::ios::out);
   o_RelData_Bgo<<Mark_S<<"\nFileName="<<gRootIOSvc->GetInputFileName()<<std::endl;
   o_RelData_Bgo<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<std::endl;
@@ -158,7 +157,7 @@ bool DmpAlgCalibrationRel::Finalize(){
   // create output txtfile      PSD
   histFile->mkdir("Psd");
   histFile->cd("Psd");
-  name = "Psd_"+gRootIOSvc->GetInputStem()+"Dy8.rel";
+  name = "Psd_"+gRootIOSvc->GetInputStem()+".rel";
   o_RelData_Psd.open(name.c_str(),std::ios::out);
   o_RelData_Psd<<Mark_S<<"\nFileName="<<gRootIOSvc->GetInputFileName()<<std::endl;
   o_RelData_Psd<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<std::endl;
