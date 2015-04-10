@@ -8,7 +8,6 @@
 
 #include "TH2D.h"
 #include "TF1.h"
-#include "TMath.h"
 #include "TFile.h"
 
 #include "DmpEvtBgoRaw.h"
@@ -21,6 +20,10 @@
 #include "DmpParameterPsd.h"
 #include "DmpCore.h"
 #include "DmpTimeConvertor.h"
+#define  NBinX  2000
+#define  NBinY  90
+#define  Dis    10
+#define  ChiSCut 5
 
 //-------------------------------------------------------------------
 DmpAlgCalibrationRel::DmpAlgCalibrationRel()
@@ -57,9 +60,9 @@ bool DmpAlgCalibrationRel::Initialize(){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s=0;s<DmpParameterBgo::kSideNo;++s){
         snprintf(name,200,"Bgo_L%02d_B%02d_S%d_Dy2-Dy5",l,b,s);
-        fBgoRelHist[l][b][s][0] = new TH2D(name,name,2000,0,16000,90,0,450);
+        fBgoRelHist[l][b][s][0] = new TH2D(name,name,NBinX,0,16000,NBinY,0,450);
         snprintf(name,200,"Bgo_L%02d_B%02d_S%d_Dy5-Dy8",l,b,s);
-        fBgoRelHist[l][b][s][1] = new TH2D(name,name,2000,0,16000,90,0,450);
+        fBgoRelHist[l][b][s][1] = new TH2D(name,name,NBinX,0,16000,NBinY,0,450);
       }
     }
   }
@@ -68,7 +71,7 @@ bool DmpAlgCalibrationRel::Initialize(){
     for(short b=0;b<DmpParameterPsd::kStripNo;++b){
       for(short s=0;s<DmpParameterPsd::kSideNo;++s){
         snprintf(name,200,"Psd_L%02d_B%02d_S%d_Dy5-Dy8",l,b,s);
-        fPsdRelHist[l][b][s] = new TH2D(name,name,2000,0,16000,90,0,450);
+        fPsdRelHist[l][b][s] = new TH2D(name,name,NBinX,0,16000,NBinY,0,450);
       }
     }
   }
@@ -132,21 +135,59 @@ bool DmpAlgCalibrationRel::Finalize(){
   o_RelData_Bgo<<Mark_S<<"\nFileName="<<gRootIOSvc->GetInputFileName()<<std::endl;
   o_RelData_Bgo<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<std::endl;
   o_RelData_Bgo<<Mark_D<<std::endl;
-  //lxg_f->SetRange(100,1500);
   short layerNo = DmpParameterBgo::kPlaneNo*2;
   short gid_bar = -1;
+  TH2D *holder = 0;
+  double p0 =0, p1=0;
+  double xc, cal_y, yc;
+  bool foundFirstY;
   for(short l=0;l<layerNo;++l){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s = 0;s<DmpParameterBgo::kSideNo;++s){
         for(short nd=0;nd<2;++nd){
           o_RelData_Bgo<<DmpBgoBase::ConstructGlobalDynodeID(l,b,s,nd*3+2)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t%d",l,b,s,nd*3+2);
           fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
+          fBgoRelHist[l][b][s][nd]->Write();
+          if(lxg_f->GetChisquare() / lxg_f->GetNDF() > ChiSCut){
+            holder = new TH2D(*fBgoRelHist[l][b][s][nd]);
+            for(int ibx = 1;ibx <= NBinX;++ibx){
+              foundFirstY = false;
+              for(int iby = 1;iby <= NBinY;++iby){
+                if(holder->GetBinContent(ibx,iby)!=0){
+                  if(foundFirstY){
+                    holder->SetBinContent(ibx,iby,0);
+                  }else{
+                    foundFirstY = true;
+                  }
+                }
+              }
+            }
+            holder->Fit(lxg_f,"RQB");
+            delete holder;
+          }
+          p0 = lxg_f->GetParameter(0);
+          p1 = lxg_f->GetParameter(1);
+          holder = new TH2D(*fBgoRelHist[l][b][s][nd]);
+          for(int ibx = 1;ibx <= NBinX;++ibx){
+            xc = holder->GetXaxis()->GetBinCenter(ibx);
+            cal_y = p0 + p1*xc;
+            for(int iby = 1;iby <= NBinY;++iby){
+              yc = holder->GetYaxis()->GetBinCenter(iby);
+              if(yc - cal_y > Dis){
+                if(holder->GetBinContent(ibx,iby)!=0){
+                  holder->SetBinContent(ibx,iby,0);
+                }
+              }
+            }
+          }
+          holder->Fit(lxg_f,"RQB");
           for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
             o_RelData_Bgo<<"\t\t"<<lxg_f->GetParameter(ip);
           }
-          o_RelData_Bgo<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
-          fBgoRelHist[l][b][s][nd]->Write();
+          o_RelData_Bgo<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<"\t\t"<<holder->GetEntries()-fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
+          holder->Write();
           delete fBgoRelHist[l][b][s][nd];
+          delete holder;
         }
       }
     }
@@ -168,12 +209,49 @@ bool DmpAlgCalibrationRel::Finalize(){
       for(short s = 0;s<DmpParameterPsd::kSideNo;++s){
         o_RelData_Psd<<DmpPsdBase::ConstructGlobalDynodeID(l,b,s,5)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t5",l,b,s);
         fPsdRelHist[l][b][s]->Fit(lxg_f,"RQB");
+        fPsdRelHist[l][b][s]->Write();
+//-------------------------------------------------------------------
+        if(lxg_f->GetChisquare() / lxg_f->GetNDF() > ChiSCut){
+          holder = new TH2D(*fPsdRelHist[l][b][s]);
+          for(int ibx = 1;ibx <= NBinX;++ibx){
+            foundFirstY = false;
+            for(int iby = 1;iby <= NBinY;++iby){
+              if(holder->GetBinContent(ibx,iby)!=0){
+                if(foundFirstY){
+                  holder->SetBinContent(ibx,iby,0);
+                }else{
+                  foundFirstY = true;
+                }
+              }
+            }
+          }
+          holder->Fit(lxg_f,"RQB");
+          delete holder;
+        }
+//-------------------------------------------------------------------
+        p0 = lxg_f->GetParameter(0);
+        p1 = lxg_f->GetParameter(1);
+        holder = new TH2D(*fPsdRelHist[l][b][s]);
+        for(int ibx = 1;ibx <= NBinX;++ibx){
+          xc = holder->GetXaxis()->GetBinCenter(ibx);
+          cal_y = p0 + p1*xc;
+          for(int iby = 1;iby <= NBinY;++iby){
+            yc = holder->GetYaxis()->GetBinCenter(iby);
+            if(yc - cal_y > Dis){
+              if(holder->GetBinContent(ibx,iby)!=0){
+                holder->SetBinContent(ibx,iby,0);
+              }
+            }
+          }
+        }
+        holder->Fit(lxg_f,"RQB");
         for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
           o_RelData_Psd<<"\t\t"<<lxg_f->GetParameter(ip);
         }
-        o_RelData_Psd<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
-        fPsdRelHist[l][b][s]->Write();
+        o_RelData_Psd<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<"\t\t"<<holder->GetEntries()-fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
+        holder->Write();
         delete fPsdRelHist[l][b][s];
+        delete holder;
       }
     }
   }
