@@ -12,7 +12,7 @@
 
 #include "DmpLoadParameters.h"
 
-void Bgo_RelStat(TString fname,int entries_cut = 200)
+void Bgo_RelStat(TString fname,int entries_cut = 1000)
 {
    DmpParameterSteering  steering;
    DmpParameterHolder  rel_par;
@@ -77,7 +77,7 @@ void Bgo_RelStat(TString fname,int entries_cut = 200)
 
 }
 
-void Psd_RelStat(TString fname,int entries_cut = 200)
+void Psd_RelStat(TString fname,int entries_cut = 1000)
 {
    DmpParameterSteering  steering;
    DmpParameterHolder  rel_par;
