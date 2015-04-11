@@ -12,7 +12,7 @@
 
 #include "DmpLoadParameters.h"
 
-void Bgo_RelStat(TString fname,int entries_cut = 100)
+void Bgo_RelStat(TString fname,int entries_cut = 200)
 {
    DmpParameterSteering  steering;
    DmpParameterHolder  rel_par;
@@ -29,7 +29,7 @@ void Bgo_RelStat(TString fname,int entries_cut = 100)
    for(short s=0;s<2;++s){
      for(short dy =0;dy<2;++dy){
        TString xx= name+Form("-Side%d_Dy%d-Dy%d",s,dy*3+2,(dy+1)*3+2);
-       h_p0p1[s][dy] = new TH2F(xx+" p0 VS P1","p0 VS p1;p0;p1",3000,0.015,0.045,200,-20,40);
+       h_p0p1[s][dy] = new TH2F(xx+" p0 VS P1","p0 VS p1;p1;p0",5000,0.005,0.055,200,-40,40);
        h_p0p1[s][dy]->SetMarkerStyle(23);
        h_p0p1[s][dy]->SetMarkerSize(0.8);
        h_chi[s][dy]  = new TH2F(xx+" chi2/NDF","chi2/NDF;bar ID;layer ID",22,0,22,14,0,14);
@@ -77,7 +77,7 @@ void Bgo_RelStat(TString fname,int entries_cut = 100)
 
 }
 
-void Psd_RelStat(TString fname,int entries_cut = 100)
+void Psd_RelStat(TString fname,int entries_cut = 200)
 {
    DmpParameterSteering  steering;
    DmpParameterHolder  rel_par;
@@ -93,7 +93,7 @@ void Psd_RelStat(TString fname,int entries_cut = 100)
    name.Remove(name.Last('-'));
    for(short s=0;s<2;++s){
        TString xx= name+Form("-Side%d_Dy5-Dy8",s);
-       h_p0p1[s] = new TH2F(xx+" p0 VS P1","p0 VS p1;p0;p1",3000,0.015,0.045,200,-20,40);
+       h_p0p1[s] = new TH2F(xx+" p0 VS P1","p0 VS p1;p1;p0",5000,0.005,0.055,200,-40,40);
        h_p0p1[s]->SetMarkerStyle(23);
        h_p0p1[s]->SetMarkerSize(0.8);
        h_chi[s]  = new TH2F(xx+" chi2/NDF","chi2/NDF;bar ID;layer ID",41,0,41,2,0,2);
