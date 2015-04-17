@@ -20,10 +20,11 @@
 #include "DmpParameterPsd.h"
 #include "DmpCore.h"
 #include "DmpTimeConvertor.h"
-#define  NBinX  2000
+#define  NBinX  3200
 #define  NBinY  90
 #define  Dis    10
 #define  ChiSCut 5
+#define  XLowCut 3000
 
 //-------------------------------------------------------------------
 DmpAlgCalibrationRel::DmpAlgCalibrationRel()
@@ -123,7 +124,7 @@ bool DmpAlgCalibrationRel::ProcessThisEvent(){
 
 //-------------------------------------------------------------------
 bool DmpAlgCalibrationRel::Finalize(){
-  TF1 *lxg_f = new TF1("linear","pol1",3000,13000);
+  TF1 *lxg_f = new TF1("linear","pol1",XLowCut,13000);
   std::string histFileName = gRootIOSvc->GetOutputPath()+gRootIOSvc->GetInputStem()+"_DyRelationHist.root";
   TFile *histFile = gRootIOSvc->GetOutputRootFile();//new TFile(histFileName.c_str(),"RECREATE");
 
@@ -151,6 +152,7 @@ bool DmpAlgCalibrationRel::Finalize(){
           if(lxg_f->GetChisquare() / lxg_f->GetNDF() > ChiSCut){
             holder = new TH2D(*fBgoRelHist[l][b][s][nd]);
             for(int ibx = 1;ibx <= NBinX;++ibx){
+              if(holder->GetXaxis()->GetBinCenter(ibx) < XLowCut) continue;
               foundFirstY = false;
               for(int iby = 1;iby <= NBinY;++iby){
                 if(holder->GetBinContent(ibx,iby)!=0){
@@ -170,6 +172,7 @@ bool DmpAlgCalibrationRel::Finalize(){
           holder = new TH2D(*fBgoRelHist[l][b][s][nd]);
           for(int ibx = 1;ibx <= NBinX;++ibx){
             xc = holder->GetXaxis()->GetBinCenter(ibx);
+            if(xc < XLowCut) continue;
             cal_y = p0 + p1*xc;
             for(int iby = 1;iby <= NBinY;++iby){
               yc = holder->GetYaxis()->GetBinCenter(iby);
@@ -215,6 +218,7 @@ bool DmpAlgCalibrationRel::Finalize(){
           holder = new TH2D(*fPsdRelHist[l][b][s]);
           for(int ibx = 1;ibx <= NBinX;++ibx){
             foundFirstY = false;
+            if(holder->GetXaxis()->GetBinCenter(ibx) < XLowCut) continue;
             for(int iby = 1;iby <= NBinY;++iby){
               if(holder->GetBinContent(ibx,iby)!=0){
                 if(foundFirstY){
@@ -234,6 +238,7 @@ bool DmpAlgCalibrationRel::Finalize(){
         holder = new TH2D(*fPsdRelHist[l][b][s]);
         for(int ibx = 1;ibx <= NBinX;++ibx){
           xc = holder->GetXaxis()->GetBinCenter(ibx);
+          if(xc < XLowCut) continue;
           cal_y = p0 + p1*xc;
           for(int iby = 1;iby <= NBinY;++iby){
             yc = holder->GetYaxis()->GetBinCenter(iby);

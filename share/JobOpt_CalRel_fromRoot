@@ -24,7 +24,7 @@ import libDmpCalRel as DmpCalRel
 # RootIOSvc options
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141118_163049-Rec0.root")
 #DMPSW.RootIOSvc.InputPath(os.environ["DMPSWWORK"]+"/data/sci")
-DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141030_150754-Rec0.root")
+DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141030_012521-Rec0.root")
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141118_202446-Rec0.root")  # muon many
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141118_181842-Rec0.root")  # muon P43_68
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141030_125252-Rec0.root")  # muon P93_93
