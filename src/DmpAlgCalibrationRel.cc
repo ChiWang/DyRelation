@@ -25,6 +25,7 @@
 #define  Dis    10
 #define  ChiSCut 5
 #define  XLowCut 3000
+#define  LessEntries  500
 
 //-------------------------------------------------------------------
 DmpAlgCalibrationRel::DmpAlgCalibrationRel()
@@ -146,6 +147,7 @@ bool DmpAlgCalibrationRel::Finalize(){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s = 0;s<DmpParameterBgo::kSideNo;++s){
         for(short nd=0;nd<2;++nd){
+          if(fBgoRelHist[l][b][s][nd]->GetEntries() > LessEntries){
           o_RelData_Bgo<<DmpBgoBase::ConstructGlobalDynodeID(l,b,s,nd*3+2)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t%d",l,b,s,nd*3+2);
           fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
           fBgoRelHist[l][b][s][nd]->Write();
@@ -189,8 +191,9 @@ bool DmpAlgCalibrationRel::Finalize(){
           }
           o_RelData_Bgo<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<"\t\t"<<holder->GetEntries()-fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
           holder->Write();
-          delete fBgoRelHist[l][b][s][nd];
           delete holder;
+          }
+          delete fBgoRelHist[l][b][s][nd];
         }
       }
     }
@@ -210,6 +213,7 @@ bool DmpAlgCalibrationRel::Finalize(){
   for(short l=0;l<layerNo;++l){
     for(short b=0;b<DmpParameterPsd::kStripNo;++b){
       for(short s = 0;s<DmpParameterPsd::kSideNo;++s){
+        if(fPsdRelHist[l][b][s]->GetEntries() > LessEntries){
         o_RelData_Psd<<DmpPsdBase::ConstructGlobalDynodeID(l,b,s,5)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t5",l,b,s);
         fPsdRelHist[l][b][s]->Fit(lxg_f,"RQB");
         fPsdRelHist[l][b][s]->Write();
@@ -255,8 +259,9 @@ bool DmpAlgCalibrationRel::Finalize(){
         }
         o_RelData_Psd<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<"\t\t"<<holder->GetEntries()-fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
         holder->Write();
-        delete fPsdRelHist[l][b][s];
         delete holder;
+        }
+        delete fPsdRelHist[l][b][s];
       }
     }
   }
