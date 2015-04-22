@@ -151,6 +151,7 @@ bool DmpAlgCalibrationRel::Finalize(){
     c[i/2][i%2] = new TCanvas(Form("c%d",i),Form("c%d",i),600,800);
     c[i/2][i%2]->Divide(4,6);
   }
+  double p0,p1,chi2;
   for(short l=0;l<DmpParameterBgo::kPlaneNo*2;++l){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s = 0;s<DmpParameterBgo::kSideNo;++s){
@@ -160,9 +161,16 @@ bool DmpAlgCalibrationRel::Finalize(){
           if(fBgoRelHist[l][b][s][nd]->GetEntries() > EntriesCut){
           fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
           fBgoRelHist[l][b][s][nd]->Write();
+          p0 = lxg_f->GetParameter(0);
+          p1 = lxg_f->GetParameter(1);
+          chi2 = lxg_f->GetChisquare() / lxg_f->GetNDF();
+          }else{
+          p0=-999;
+          p1=-999;
+          chi2 = -999;
           }
           fBgoRelHist[l][b][s][nd]->Draw("colz");
-          o_RelData_Bgo<<"\t\t"<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
+          o_RelData_Bgo<<"\t\t"<<p0<<"\t\t"<<p1<<"\t\t"<<chi2<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
           //delete fBgoRelHist[l][b][s][nd];
         }
       }
@@ -196,9 +204,16 @@ bool DmpAlgCalibrationRel::Finalize(){
         if(fPsdRelHist[l][b][s]->GetEntries() > EntriesCut){
           fPsdRelHist[l][b][s]->Fit(lxg_f,"RQB");
           fPsdRelHist[l][b][s]->Write();
+          p0 = lxg_f->GetParameter(0);
+          p1 = lxg_f->GetParameter(1);
+          chi2 = lxg_f->GetChisquare() / lxg_f->GetNDF();
+        }else{
+          p0=-999;
+          p1=-999;
+          chi2 = -999;
         }
         fPsdRelHist[l][b][s]->Draw("colz");
-        o_RelData_Psd<<"\t\t"<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
+        o_RelData_Psd<<"\t\t"<<p0<<"\t\t"<<p1<<"\t\t"<<chi2<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
         //delete fPsdRelHist[l][b][s];
       }
     }
