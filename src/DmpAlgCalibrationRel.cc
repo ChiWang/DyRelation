@@ -12,6 +12,7 @@
 #include "TCanvas.h"
 #include "TStyle.h"
 #include "TPostScript.h"
+#include "TMath.h"
 
 #include "DmpEvtBgoRaw.h"
 #include "DmpAlgCalibrationRel.h"
@@ -152,6 +153,7 @@ bool DmpAlgCalibrationRel::Finalize(){
     c[i/2][i%2]->Divide(4,6);
   }
   double p0,p1,chi2;
+  int fitStat;
   for(short l=0;l<DmpParameterBgo::kPlaneNo*2;++l){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s = 0;s<DmpParameterBgo::kSideNo;++s){
@@ -159,18 +161,25 @@ bool DmpAlgCalibrationRel::Finalize(){
           o_RelData_Bgo<<DmpBgoBase::ConstructGlobalDynodeID(l,b,s,nd*3+2)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t%d",l,b,s,nd*3+2);
           c[s][nd]->cd(b+1);
           if(fBgoRelHist[l][b][s][nd]->GetEntries() > EntriesCut){
-          fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
-          fBgoRelHist[l][b][s][nd]->Write();
-          p0 = lxg_f->GetParameter(0);
-          p1 = lxg_f->GetParameter(1);
-          chi2 = lxg_f->GetChisquare() / lxg_f->GetNDF();
+            fitStat = fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
+            fBgoRelHist[l][b][s][nd]->Write();
+            p0 = lxg_f->GetParameter(0);
+            p1 = lxg_f->GetParameter(1);
+            chi2 = lxg_f->GetChisquare() / lxg_f->GetNDF();
+            if(TMath::Abs(chi2) > 5){
+              p0=-999;
+              p1=-999;
+              //chi2 = -999;
+              fitStat = -1;
+            }
           }else{
-          p0=-999;
-          p1=-999;
-          chi2 = -999;
+            p0=-999;
+            p1=-999;
+            chi2 = -999;
+            fitStat = -1;
           }
           fBgoRelHist[l][b][s][nd]->Draw("colz");
-          o_RelData_Bgo<<"\t\t"<<p0<<"\t\t"<<p1<<"\t\t"<<chi2<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
+          o_RelData_Bgo<<"\t\t"<<p0<<"\t\t"<<p1<<"\t\t"<<chi2<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<"\t\t"<<fitStat<<std::endl;
           //delete fBgoRelHist[l][b][s][nd];
         }
       }
@@ -178,7 +187,6 @@ bool DmpAlgCalibrationRel::Finalize(){
     for(int i=0;i<4;++i){
       c[i/2][i%2]->Print(epsFileName.c_str(),"Portrait");//Update();
     }
-    //throw;
   }
   o_RelData_Bgo<<Mark_N<<std::endl;
   o_RelData_Bgo.close();
@@ -207,13 +215,20 @@ bool DmpAlgCalibrationRel::Finalize(){
           p0 = lxg_f->GetParameter(0);
           p1 = lxg_f->GetParameter(1);
           chi2 = lxg_f->GetChisquare() / lxg_f->GetNDF();
+          if(TMath::Abs(chi2) > 5){
+            p0=-999;
+            p1=-999;
+            //chi2 = -999;
+            fitStat = -1;
+          }
         }else{
           p0=-999;
           p1=-999;
           chi2 = -999;
+          fitStat = -1;
         }
         fPsdRelHist[l][b][s]->Draw("colz");
-        o_RelData_Psd<<"\t\t"<<p0<<"\t\t"<<p1<<"\t\t"<<chi2<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
+        o_RelData_Psd<<"\t\t"<<p0<<"\t\t"<<p1<<"\t\t"<<chi2<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<"\t\t"<<fitStat<<std::endl;
         //delete fPsdRelHist[l][b][s];
       }
     }

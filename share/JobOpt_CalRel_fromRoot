@@ -9,12 +9,13 @@
 
 #-------------------------------------------------------------------
 import os
+import sys
 import DMPSW                    # Load DAMPE software
 import libDmpCalRel as DmpCalRel
 
 #-------------------------------------------------------------------
 # Global setting
-DMPSW.Core.SetEventNumber(2000)     # default: -1
+DMPSW.Core.SetEventNumber(5000)     # default: -1
 #DMPSW.Core.SetStartTime("2014-11-18 20:33:00")     # default: 2013-01-01 00:00:00
 #DMPSW.Core.SetStopTime("2014-11-18 21:44:10")      # default: 2053-01-01 00:00:00
 #DMPSW.Core.LogLevel("Debug")      # Value = {Error | Warning | Info | Debug}. default: Info.
@@ -24,13 +25,15 @@ DMPSW.Core.SetEventNumber(2000)     # default: -1
 # RootIOSvc options
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141118_163049-Rec0.root")
 #DMPSW.RootIOSvc.InputPath(os.environ["DMPSWWORK"]+"/data/sci")
-DMPSW.RootIOSvc.SetInputFile("./RelEle.root")
-#DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141030_012521-Rec0.root")
+DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141030_012521-Rec0.root")
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141118_202446-Rec0.root")  # muon many
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141118_181842-Rec0.root")  # muon P43_68
 #DMPSW.RootIOSvc.SetInputFile("./A2Data00_20141030_125252-Rec0.root")  # muon P93_93
 #DMPSW.RootIOSvc.WriteList("Calibration/Bgo")  # split by ;
 #DMPSW.RootIOSvc.OutputPath(os.environ["DMPSWWORK"]+"/run/data/cal/mip")
+if len(sys.argv)== 2:
+        fname=sys.argv[1]
+        DMPSW.RootIOSvc.SetInputFile(fname)
 
 #-------------------------------------------------------------------
 # Creat user's service or algorithm
