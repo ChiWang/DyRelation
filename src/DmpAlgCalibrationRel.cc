@@ -9,6 +9,9 @@
 #include "TH2D.h"
 #include "TF1.h"
 #include "TFile.h"
+#include "TCanvas.h"
+#include "TStyle.h"
+#include "TPostScript.h"
 
 #include "DmpEvtBgoRaw.h"
 #include "DmpAlgCalibrationRel.h"
@@ -22,10 +25,9 @@
 #include "DmpTimeConvertor.h"
 #define  NBinX  3200
 #define  NBinY  90
-#define  Dis    10
-#define  ChiSCut 5
+//#define  ChiSCut 5
 #define  XLowCut 3000
-#define  LessEntries  500
+#define  EntriesCut  80
 
 //-------------------------------------------------------------------
 DmpAlgCalibrationRel::DmpAlgCalibrationRel()
@@ -128,6 +130,13 @@ bool DmpAlgCalibrationRel::Finalize(){
   TF1 *lxg_f = new TF1("linear","pol1",XLowCut,13000);
   std::string histFileName = gRootIOSvc->GetOutputPath()+gRootIOSvc->GetInputStem()+"_DyRelationHist.root";
   TFile *histFile = gRootIOSvc->GetOutputRootFile();//new TFile(histFileName.c_str(),"RECREATE");
+  std::string epsFileName = gRootIOSvc->GetOutputPath()+gRootIOSvc->GetInputStem()+"_DyRelationHist.eps";
+  //TPostScript *epsF = new TPostScript(epsFileName.c_str(),113);
+  gStyle->SetOptFit(1111);
+  gStyle->SetOptStat("e");
+  TCanvas *c0 = new TCanvas("c0","c0",0,0,600,800);
+  std::string epsFileName0 = epsFileName+"[";
+  c0->Print(epsFileName0.c_str());
 
   // create output txtfile      BGO
   histFile->mkdir("Bgo");
@@ -137,66 +146,31 @@ bool DmpAlgCalibrationRel::Finalize(){
   o_RelData_Bgo<<Mark_S<<"\nFileName="<<gRootIOSvc->GetInputFileName()<<std::endl;
   o_RelData_Bgo<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<std::endl;
   o_RelData_Bgo<<Mark_D<<std::endl;
-  short layerNo = DmpParameterBgo::kPlaneNo*2;
-  short gid_bar = -1;
-  TH2D *holder = 0;
-  double p0 =0, p1=0;
-  double xc, cal_y, yc;
-  bool foundFirstY;
-  for(short l=0;l<layerNo;++l){
+  TCanvas *c[2][2];
+  for(int i=0;i<4;++i){
+    c[i/2][i%2] = new TCanvas(Form("c%d",i),Form("c%d",i),600,800);
+    c[i/2][i%2]->Divide(4,6);
+  }
+  for(short l=0;l<DmpParameterBgo::kPlaneNo*2;++l){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s = 0;s<DmpParameterBgo::kSideNo;++s){
         for(short nd=0;nd<2;++nd){
-          if(fBgoRelHist[l][b][s][nd]->GetEntries() > LessEntries){
           o_RelData_Bgo<<DmpBgoBase::ConstructGlobalDynodeID(l,b,s,nd*3+2)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t%d",l,b,s,nd*3+2);
+          c[s][nd]->cd(b+1);
+          if(fBgoRelHist[l][b][s][nd]->GetEntries() > EntriesCut){
           fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
           fBgoRelHist[l][b][s][nd]->Write();
-          if(lxg_f->GetChisquare() / lxg_f->GetNDF() > ChiSCut){
-            holder = new TH2D(*fBgoRelHist[l][b][s][nd]);
-            for(int ibx = 1;ibx <= NBinX;++ibx){
-              if(holder->GetXaxis()->GetBinCenter(ibx) < XLowCut) continue;
-              foundFirstY = false;
-              for(int iby = 1;iby <= NBinY;++iby){
-                if(holder->GetBinContent(ibx,iby)!=0){
-                  if(foundFirstY){
-                    holder->SetBinContent(ibx,iby,0);
-                  }else{
-                    foundFirstY = true;
-                  }
-                }
-              }
-            }
-            holder->Fit(lxg_f,"RQB");
-            delete holder;
           }
-          p0 = lxg_f->GetParameter(0);
-          p1 = lxg_f->GetParameter(1);
-          holder = new TH2D(*fBgoRelHist[l][b][s][nd]);
-          for(int ibx = 1;ibx <= NBinX;++ibx){
-            xc = holder->GetXaxis()->GetBinCenter(ibx);
-            if(xc < XLowCut) continue;
-            cal_y = p0 + p1*xc;
-            for(int iby = 1;iby <= NBinY;++iby){
-              yc = holder->GetYaxis()->GetBinCenter(iby);
-              if(yc - cal_y > Dis){
-                if(holder->GetBinContent(ibx,iby)!=0){
-                  holder->SetBinContent(ibx,iby,0);
-                }
-              }
-            }
-          }
-          holder->Fit(lxg_f,"RQB");
-          for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
-            o_RelData_Bgo<<"\t\t"<<lxg_f->GetParameter(ip);
-          }
-          o_RelData_Bgo<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<"\t\t"<<holder->GetEntries()-fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
-          holder->Write();
-          delete holder;
-          }
-          delete fBgoRelHist[l][b][s][nd];
+          fBgoRelHist[l][b][s][nd]->Draw("colz");
+          o_RelData_Bgo<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
+          //delete fBgoRelHist[l][b][s][nd];
         }
       }
     }
+    for(int i=0;i<4;++i){
+      c[i/2][i%2]->Print(epsFileName.c_str(),"Portrait");//Update();
+    }
+    //throw;
   }
   o_RelData_Bgo<<Mark_N<<std::endl;
   o_RelData_Bgo.close();
@@ -209,64 +183,33 @@ bool DmpAlgCalibrationRel::Finalize(){
   o_RelData_Psd<<Mark_S<<"\nFileName="<<gRootIOSvc->GetInputFileName()<<std::endl;
   o_RelData_Psd<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<std::endl;
   o_RelData_Psd<<Mark_D<<std::endl;
-  layerNo = DmpParameterPsd::kPlaneNo*2;
-  for(short l=0;l<layerNo;++l){
+  TCanvas *cpsd[2];
+  for(int i=0;i<2;++i){
+    cpsd[i] = new TCanvas(Form("cPsd%d",i),"",600,800);
+    cpsd[i]->Divide(6,7);
+  }
+  for(short l=0;l<DmpParameterPsd::kPlaneNo*2;++l){
     for(short b=0;b<DmpParameterPsd::kStripNo;++b){
       for(short s = 0;s<DmpParameterPsd::kSideNo;++s){
-        if(fPsdRelHist[l][b][s]->GetEntries() > LessEntries){
         o_RelData_Psd<<DmpPsdBase::ConstructGlobalDynodeID(l,b,s,5)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t5",l,b,s);
-        fPsdRelHist[l][b][s]->Fit(lxg_f,"RQB");
-        fPsdRelHist[l][b][s]->Write();
-//-------------------------------------------------------------------
-        if(lxg_f->GetChisquare() / lxg_f->GetNDF() > ChiSCut){
-          holder = new TH2D(*fPsdRelHist[l][b][s]);
-          for(int ibx = 1;ibx <= NBinX;++ibx){
-            foundFirstY = false;
-            if(holder->GetXaxis()->GetBinCenter(ibx) < XLowCut) continue;
-            for(int iby = 1;iby <= NBinY;++iby){
-              if(holder->GetBinContent(ibx,iby)!=0){
-                if(foundFirstY){
-                  holder->SetBinContent(ibx,iby,0);
-                }else{
-                  foundFirstY = true;
-                }
-              }
-            }
-          }
-          holder->Fit(lxg_f,"RQB");
-          delete holder;
+        cpsd[s]->cd(b+1);
+        if(fPsdRelHist[l][b][s]->GetEntries() > EntriesCut){
+          fPsdRelHist[l][b][s]->Fit(lxg_f,"RQB");
+          fPsdRelHist[l][b][s]->Write();
         }
-//-------------------------------------------------------------------
-        p0 = lxg_f->GetParameter(0);
-        p1 = lxg_f->GetParameter(1);
-        holder = new TH2D(*fPsdRelHist[l][b][s]);
-        for(int ibx = 1;ibx <= NBinX;++ibx){
-          xc = holder->GetXaxis()->GetBinCenter(ibx);
-          if(xc < XLowCut) continue;
-          cal_y = p0 + p1*xc;
-          for(int iby = 1;iby <= NBinY;++iby){
-            yc = holder->GetYaxis()->GetBinCenter(iby);
-            if(yc - cal_y > Dis){
-              if(holder->GetBinContent(ibx,iby)!=0){
-                holder->SetBinContent(ibx,iby,0);
-              }
-            }
-          }
-        }
-        holder->Fit(lxg_f,"RQB");
-        for(int ip=0;ip<lxg_f->GetNumberFreeParameters();++ip){
-          o_RelData_Psd<<"\t\t"<<lxg_f->GetParameter(ip);
-        }
-        o_RelData_Psd<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<"\t\t"<<holder->GetEntries()-fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
-        holder->Write();
-        delete holder;
-        }
-        delete fPsdRelHist[l][b][s];
+        fPsdRelHist[l][b][s]->Draw("colz");
+        o_RelData_Psd<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
+        //delete fPsdRelHist[l][b][s];
       }
     }
+    cpsd[0]->Print(epsFileName.c_str(),"Portrait");//Update();
+    cpsd[1]->Print(epsFileName.c_str(),"Portrait");//Update();
   }
   o_RelData_Psd<<Mark_N<<std::endl;
   o_RelData_Psd.close();
+  TCanvas *c2 = new TCanvas("c2","c2");
+  std::string epsFileName1 = epsFileName+"]";
+  c2->Print(epsFileName1.c_str());
 
   return true;
 }
