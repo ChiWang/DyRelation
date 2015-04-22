@@ -162,7 +162,7 @@ bool DmpAlgCalibrationRel::Finalize(){
           fBgoRelHist[l][b][s][nd]->Write();
           }
           fBgoRelHist[l][b][s][nd]->Draw("colz");
-          o_RelData_Bgo<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
+          o_RelData_Bgo<<"\t\t"<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fBgoRelHist[l][b][s][nd]->GetEntries()<<std::endl;
           //delete fBgoRelHist[l][b][s][nd];
         }
       }
@@ -198,7 +198,7 @@ bool DmpAlgCalibrationRel::Finalize(){
           fPsdRelHist[l][b][s]->Write();
         }
         fPsdRelHist[l][b][s]->Draw("colz");
-        o_RelData_Psd<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
+        o_RelData_Psd<<"\t\t"<<lxg_f->GetParameter(0)<<"\t\t"<<lxg_f->GetParameter(1)<<"\t\t"<<lxg_f->GetChisquare()/lxg_f->GetNDF()<<"\t\t"<<fPsdRelHist[l][b][s]->GetEntries()<<std::endl;
         //delete fPsdRelHist[l][b][s];
       }
     }
