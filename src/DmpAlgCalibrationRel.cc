@@ -166,7 +166,7 @@ bool DmpAlgCalibrationRel::Finalize(){
             p0 = lxg_f->GetParameter(0);
             p1 = lxg_f->GetParameter(1);
             chi2 = lxg_f->GetChisquare() / lxg_f->GetNDF();
-            if(TMath::Abs(chi2) > 5){
+            if(TMath::Abs(chi2) > 7 && fBgoRelHist[l][b][s][nd]->GetEntries() < 200){
               p0=-999;
               p1=-999;
               //chi2 = -999;
