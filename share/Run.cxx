@@ -2,7 +2,7 @@
 void Run()
 {
   FileStat_t x;
-  TString libName0 ="libSplit"; // DAMPE Calibration Relation
+  TString libName0 ="libRelationCheck"; // DAMPE Calibration Relation
   if(gSystem->GetPathInfo(libName0,x)){
     gSystem->Load("$DMPSWSYS/lib/libDmpBase.so");
     gInterpreter->AddIncludePath("$DMPSWSYS/include");
