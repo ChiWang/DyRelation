@@ -84,25 +84,25 @@ void Static(string fname)
   DAMPE::LoadParameters((std::string)fname,rel_par,steering);
   TString fn = fname;
   fn.Remove(fn.Last('.'));
-  fname = fn+"_p0 VS p1";
+  fname = fn+" p0 VS p1";
   TH2F *h2_p0p1 = new TH2F(fname.c_str(),"p0 VS p1;p1;p0",400,0,0.04,1200,-60,60);
-  fname = fn+"chi2";
+  fname = fn+" chi2";
   TH2F *map_chi2 = new TH2F(fname.c_str(),"chi2;bar;layer",22,0,22,14,0,14);
-  fname = fn+"p0";
+  fname = fn+" p0";
   TH2F *map_p0 = new TH2F(fname.c_str(),"p0;bar;layer",22,0,22,14,0,14);
-  fname = fn+"p1";
+  fname = fn+" p1";
   TH2F *map_p1 = new TH2F(fname.c_str(),"p1;bar;layer",22,0,22,14,0,14);
   TString isPSD = fn;
   isPSD.ToUpper();
   if(isPSD.Contains("PSD")){
     delete map_chi2;
-    fname = fn+"chi2";
+    fname = fn+" chi2";
     map_chi2 = new TH2F(fname.c_str(),"chi2;bar;layer",42,0,42,2,0,2);
     delete map_p0;
-    fname = fn+"p0";
+    fname = fn+" p0";
     map_p0 = new TH2F(fname.c_str(),"p0;bar;layer",42,0,42,2,0,2);
     delete map_p1;
-    fname = fn+"p1";
+    fname = fn+" p1";
     map_p1 = new TH2F(fname.c_str(),"p1;bar;layer",42,0,42,2,0,2);
   }
 
@@ -117,6 +117,7 @@ void Static(string fname)
   TCanvas *c1 = new TCanvas(fn,fn,600,800);
   c1->Divide(2,2);
   c1->cd(1);
+  gPad->SetGrid();
   h2_p0p1->SetMarkerStyle(23);
   h2_p0p1->SetMarkerSize(0.8);
   h2_p0p1->Draw();
