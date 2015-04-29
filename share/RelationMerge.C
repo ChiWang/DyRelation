@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include "DmpLoadParameters.h"
 #include <fstream>

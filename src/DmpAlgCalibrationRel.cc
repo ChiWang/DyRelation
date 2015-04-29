@@ -17,7 +17,7 @@
 #include "DmpEvtBgoRaw.h"
 #include "DmpAlgCalibrationRel.h"
 #include "DmpDataBuffer.h"
-//#include "DmpLoadParameters.h"
+#include "DmpLoadParameters.h"
 #include "DmpBgoBase.h"
 #include "DmpPsdBase.h"
 #include "DmpParameterBgo.h"
@@ -145,7 +145,7 @@ bool DmpAlgCalibrationRel::Finalize(){
   std::string name = "Bgo_"+gRootIOSvc->GetInputStem()+".rel";
   o_RelData_Bgo.open(name.c_str(),std::ios::out);
   o_RelData_Bgo<<Mark_S<<"\nFileName="<<gRootIOSvc->GetInputFileName()<<std::endl;
-  o_RelData_Bgo<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<std::endl;
+  o_RelData_Bgo<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<"\nDetector="<<DmpEDetectorID::kBgo<<"\nType=1"<<std::endl;
   o_RelData_Bgo<<Mark_D<<std::endl;
   TCanvas *c[2][2];
   for(int i=0;i<4;++i){
@@ -158,7 +158,7 @@ bool DmpAlgCalibrationRel::Finalize(){
     for(short b=0;b<DmpParameterBgo::kBarNo;++b){
       for(short s = 0;s<DmpParameterBgo::kSideNo;++s){
         for(short nd=0;nd<2;++nd){
-          o_RelData_Bgo<<DmpBgoBase::ConstructGlobalDynodeID(l,b,s,nd*3+2)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t%d",l,b,s,nd*3+2);
+          o_RelData_Bgo<<DmpBgoBase::ConstructGlobalDynodeID(l,b,s,nd*3+2);
           c[s][nd]->cd(b+1);
           if(fBgoRelHist[l][b][s][nd]->GetEntries() > EntriesCut){
             fitStat = fBgoRelHist[l][b][s][nd]->Fit(lxg_f,"RQB");
@@ -197,7 +197,7 @@ bool DmpAlgCalibrationRel::Finalize(){
   name = "Psd_"+gRootIOSvc->GetInputStem()+".rel";
   o_RelData_Psd.open(name.c_str(),std::ios::out);
   o_RelData_Psd<<Mark_S<<"\nFileName="<<gRootIOSvc->GetInputFileName()<<std::endl;
-  o_RelData_Psd<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<std::endl;
+  o_RelData_Psd<<"StartTime="<<gCore->GetTimeFirstOutput()<<"\nStopTime="<<gCore->GetTimeLastOutput()<<"\nDetector="<<DmpEDetectorID::kPsd<<"\nType=1"<<std::endl;
   o_RelData_Psd<<Mark_D<<std::endl;
   TCanvas *cpsd[2];
   for(int i=0;i<2;++i){
@@ -207,7 +207,7 @@ bool DmpAlgCalibrationRel::Finalize(){
   for(short l=0;l<DmpParameterPsd::kPlaneNo*2;++l){
     for(short b=0;b<DmpParameterPsd::kStripNo;++b){
       for(short s = 0;s<DmpParameterPsd::kSideNo;++s){
-        o_RelData_Psd<<DmpPsdBase::ConstructGlobalDynodeID(l,b,s,5)<<"\t\t"<<Form("%d\t\t%d\t\t%d\t\t5",l,b,s);
+        o_RelData_Psd<<DmpPsdBase::ConstructGlobalDynodeID(l,b,s,5);
         cpsd[s]->cd(b+1);
         if(fPsdRelHist[l][b][s]->GetEntries() > EntriesCut){
           fPsdRelHist[l][b][s]->Fit(lxg_f,"RQB");
