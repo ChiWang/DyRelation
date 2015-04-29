@@ -19,7 +19,7 @@ void Split(string fname)
    ofstream failedF(ffName.c_str(),std::ios::out);
 
    for(DmpParameterHolder::iterator it = rel_par.begin();it != rel_par.end();++it){
-     if(it->second.at(8) == -1){
+     if(it->second.at(4) == -1){
        failedF<<it->first;
        for(size_t i=0;i < it->second.size();++i){
          failedF<<"\t\t"<<it->second.at(i);
@@ -46,24 +46,24 @@ void FindBest(std::vector<std::string> filenames,string outPutFileName="allGood.
   ofstream goodF(outPutFileName.c_str(),std::ios::out);
   for(DmpParameterHolder::iterator it = pars[0].begin();it!=pars[0].end();++it){
     for(int i=0;i<nFiles;++i){
-      if(pars[i][it->first].at(8) == -1) continue;
-      if(TMath::Abs(pars[i][it->first].at(4)) > 40) continue;
-      if(pars[i][it->first].at(5) == -999) continue;
-      if(pars[i][it->first].at(6) == -999) continue;
-      if(it->second.at(8) == -1){
+      if(pars[i][it->first].at(4) == -1) continue;
+      if(TMath::Abs(pars[i][it->first].at(0)) > 40) continue;
+      if(pars[i][it->first].at(1) == -999) continue;
+      if(pars[i][it->first].at(2) == -999) continue;
+      if(it->second.at(4) == -1){
         it->second = pars[i][it->first];
         continue;
       }
-      if(it->second.at(6) == -999 || it->second.at(6) == 999){
+      if(it->second.at(2) == -999 || it->second.at(2) == 999){
         it->second = pars[i][it->first];
         continue;
       }
-      bool comp0 = TMath::Abs(pars[i][it->first].at(4)) < TMath::Abs(it->second.at(4)); // p0
-      bool comp1 = pars[i][it->first].at(5) < it->second.at(5); // p1
-      double deltchi = TMath::Abs(TMath::Abs(pars[i][it->first].at(6))-1) - TMath::Abs(TMath::Abs(it->second.at(6)) - 1); // chi2
+      bool comp0 = TMath::Abs(pars[i][it->first].at(0)) < TMath::Abs(it->second.at(0)); // p0
+      bool comp1 = pars[i][it->first].at(1) < it->second.at(1); // p1
+      double deltchi = TMath::Abs(TMath::Abs(pars[i][it->first].at(2))-1) - TMath::Abs(TMath::Abs(it->second.at(2)) - 1); // chi2
       bool  comp2 = deltchi < 0? 1: 0;
-      bool comp3 = pars[i][it->first].at(7) > 0.666 * it->second.at(7); // entries
-      bool comp4 = (pars[i][it->first].at(7) > 3*it->second.at(7)) && (deltchi < 1.5);
+      bool comp3 = pars[i][it->first].at(3) > 0.666 * it->second.at(3); // entries
+      bool comp4 = (pars[i][it->first].at(3) > 3*it->second.at(3)) && (deltchi < 1.5);
       if((comp0 && comp1 && comp3) || (comp0 && comp2 && comp3) || (comp1 && comp2 && comp3) || comp4){
         it->second = pars[i][it->first];
       }
@@ -106,10 +106,12 @@ void Static(string fname)
   }
 
   for(DmpParameterHolder::iterator it = rel_par.begin();it != rel_par.end();++it){
-    h2_p0p1->Fill(it->second.at(5),it->second.at(4));
-    map_p0->Fill(it->second.at(1),it->second.at(0),it->second.at(4));
-    map_p1->Fill(it->second.at(1),it->second.at(0),it->second.at(5));
-    map_chi2->Fill(it->second.at(1),it->second.at(0),it->second.at(6));
+    h2_p0p1->Fill(it->second.at(1),it->second.at(0));
+    short l = DmpBgoBase::GetLayerID(it->second.at(0));
+    short b = DmpBgoBase::GetLayerID(it->second.at(0));
+    map_p0->Fill(b,l,it->second.at(0));
+    map_p1->Fill(b,l,it->second.at(1));
+    map_chi2->Fill(b,l,it->second.at(2));
   }
 
   gStyle->SetOptStat(111111);
